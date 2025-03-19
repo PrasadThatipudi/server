@@ -17,8 +17,12 @@ const handleConnection = async (connection) => {
   }
 };
 
-const listener = Deno.listen({ port: 8000 });
+const main = async () => {
+  const listener = Deno.listen({ port: 8000 });
 
-for await (const connection of listener) {
-  handleConnection(connection);
-}
+  for await (const connection of listener) {
+    handleConnection(connection);
+  }
+};
+
+await main();
