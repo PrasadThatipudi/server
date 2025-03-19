@@ -1,11 +1,12 @@
 const sendMessage = (sender, receivers, message, encoder) => {
   receivers.forEach(async (receiver) => {
     try {
-      const response = `${sender.clientName}: ${message}`;
+      const response = `${message}`;
 
       await receiver.write(encoder.encode(response));
     } catch (error) {
       console.log(error.message);
+      receivers.delete(receiver);
     }
   });
 };
@@ -33,13 +34,15 @@ const handleConnection = async (connection, allConnections) => {
   const encoder = new TextEncoder();
 
   const clientName = await readClientName(connection, decoder, encoder);
-  connection.clientName = clientName.slice(0, -2);
+  connection.clientName = clientName.slice(0, -1);
+  // console.log(typeof clientName, clientName, clientName.trim());
 
   for await (const request of connection.readable) {
     const message = decoder.decode(request);
 
     if (message.trim() === "exit") {
       closeConnection(connection, encoder);
+      allConnections.delete(connection);
       return;
     }
 
@@ -49,10 +52,10 @@ const handleConnection = async (connection, allConnections) => {
 
 const main = async () => {
   const listener = Deno.listen({ port: 8000 });
-  const allConnections = [];
+  const allConnections = new Set();
 
   for await (const connection of listener) {
-    allConnections.push(connection);
+    allConnections.add(connection);
     handleConnection(connection, allConnections);
   }
 };
