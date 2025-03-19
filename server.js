@@ -1,11 +1,15 @@
-const handleConnection = async (connection) => {
+const sendMessage = (sender, receiver, message) => {
+  console.log(message, sender, receiver);
+};
+
+const handleConnection = async (connection, allConnections) => {
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
 
-  for await (const data of connection.readable) {
-    const request = decoder.decode(data);
+  for await (const request of connection.readable) {
+    const message = decoder.decode(request).trim();
 
-    if (request.trim() === "exit") {
+    if (message === "exit") {
       const exitMessage = "Connection closed successfully!\n";
 
       connection.write(encoder.encode(exitMessage));
@@ -13,15 +17,17 @@ const handleConnection = async (connection) => {
       return;
     }
 
-    connection.write(encoder.encode(request));
+    sendMessage(connection, allConnections.at(0), message);
   }
 };
 
 const main = async () => {
   const listener = Deno.listen({ port: 8000 });
+  const allConnections = [];
 
   for await (const connection of listener) {
-    handleConnection(connection);
+    allConnections.push(connection);
+    handleConnection(connection, allConnections);
   }
 };
 
