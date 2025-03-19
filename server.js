@@ -1,8 +1,12 @@
 const sendMessage = (sender, receivers, message, encoder) => {
-  receivers.forEach((receiver) => {
-    const response = `${sender.clientName}: ${message}`;
+  receivers.forEach(async (receiver) => {
+    try {
+      const response = `${sender.clientName}: ${message}`;
 
-    receiver.write(encoder.encode(response));
+      await receiver.write(encoder.encode(response));
+    } catch (error) {
+      console.log(error.message);
+    }
   });
 };
 
