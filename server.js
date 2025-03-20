@@ -11,15 +11,20 @@ const sendMessage = (sender, receivers, message, encoder) => {
   });
 };
 
+const debug = function (arg) {
+  console.log(arg);
+  return arg;
+};
+
 const readClientName = async (client, decoder, encoder) => {
   const requestMessage = "Please enter your name: ";
 
   await client.write(encoder.encode(requestMessage));
 
-  const name = new Uint8Array(50);
+  const name = new Uint8Array(30);
   const byteCount = await client.read(name);
 
-  return decoder.decode(name).slice(0, byteCount);
+  return decoder.decode(debug(name)).slice(0, debug(byteCount));
 };
 
 const closeConnection = (connection, encoder) => {
@@ -33,12 +38,18 @@ const handleConnection = async (connection, allConnections) => {
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
 
-  const clientName = await readClientName(connection, decoder, encoder);
-  connection.clientName = clientName.slice(0, -1);
+  // const clientName = await readClientName(connection, decoder, encoder);
+  // connection.clientName = clientName;
+  // console.log(clientName.length);
   // console.log(typeof clientName, clientName, clientName.trim());
 
-  for await (const request of connection.readable) {
-    const message = decoder.decode(request);
+  // for await (const request of connection.readable) {
+
+  while (true) {
+    const buffer = new Uint8Array(1024);
+    const byteCount = await connection.read(buffer);
+    console.log(byteCount);
+    const message = decoder.decode(debug(buffer));
 
     if (message.trim() === "exit") {
       closeConnection(connection, encoder);
@@ -48,6 +59,7 @@ const handleConnection = async (connection, allConnections) => {
 
     sendMessage(connection, allConnections, message, encoder);
   }
+  // }
 };
 
 const main = async () => {

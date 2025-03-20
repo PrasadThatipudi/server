@@ -11,11 +11,8 @@ const handleResponses = async (connection) => {
 };
 
 const handleRequests = async (connection) => {
-  while (true) {
-    const buffer = new Uint8Array(1024);
-    await Deno.stdin.read(buffer);
-
-    await connection.write(buffer);
+  for await (const request of Deno.stdin.readable) {
+    await connection.write(request);
   }
 };
 
